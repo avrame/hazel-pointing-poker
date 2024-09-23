@@ -91,10 +91,12 @@ export function addPlayerToRoom(roomId: string, playerName: string) {
   return {updatedRoom, newPlayer}
 }
 
+let pointsCount = 0
 export function setPlayerPoints(playerId: string, points: number | "?") {
   if (data.players[playerId]) {
     data.players[playerId].points = points
-    myEventEmitter.emit('playerChosePoints', data.players[playerId].roomId, playerId, points)
+    pointsCount += 1
+    myEventEmitter.emit('playerChosePoints', data.players[playerId].roomId, playerId, points, pointsCount)
   }
 }
 

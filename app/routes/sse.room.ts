@@ -24,12 +24,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }
     }
 
-    function playerChosePointsHandler(roomId: string, playerId: string, points: number) {
+    function playerChosePointsHandler(roomId: string, playerId: string, points: number, pointsCount: number) {
       if (cookie.room.id === roomId) {
         send({ event: "revealCards", data: "false" });
         send({
           event: "playerChosePoints",
-          data: JSON.stringify({ playerId, points }),
+          data: JSON.stringify({ playerId, points, pointsCount }),
         });
       }
     }
