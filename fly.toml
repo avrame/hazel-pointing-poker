@@ -1,4 +1,5 @@
 app = "hazel-pointing-poker-6ae5"
+primary_region = "sea"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = [ ]
