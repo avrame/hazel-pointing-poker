@@ -1,6 +1,5 @@
 import { cssBundleHref } from "@remix-run/css-bundle";
-import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import type { LinksFunction } from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -10,17 +9,18 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 
-import { getUser } from "~/session.server";
+import mainStyles from "~/main.css";
 import stylesheet from "~/tailwind.css";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
+  { rel: "stylesheet", href: mainStyles },
   ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
 ];
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  return json({ user: await getUser(request) });
-};
+// export const loader = async ({ request }: LoaderFunctionArgs) => {
+//   return json({ user: await getUser(request) });
+// };
 
 export default function App() {
   return (
@@ -31,8 +31,15 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="h-full">
-        <Outlet />
+      <body className="h-full bg-slate-200">
+        <header className="container mx-auto mb-5 rounded-b-lg bg-white p-8">
+          <h1 className="text-center drop-shadow-md text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
+            The Official Hazel Health Pointing Poker App
+          </h1>
+        </header>
+        <main className="container mx-auto min-h-screen rounded-t-lg bg-white p-8">
+          <Outlet />
+        </main>
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
