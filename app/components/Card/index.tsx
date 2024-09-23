@@ -8,7 +8,7 @@ interface CardProps {
 
 export default function Card({ points, flip = false }: CardProps) {
   return (
-    <div className={`card relative w-20 h-28 ${flip ? "flip" : ""}`}>
+    <div className={`card relative ${flip ? "flip" : ""}`}>
       <div className="content absolute h-full w-full shadow-md">
         <div className="front absolute h-full w-full rounded-md bg-slate-100 text-center flex justify-center items-center">
           {points}
