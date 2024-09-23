@@ -1,11 +1,14 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 // app/routes/sse.room.ts
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { eventStream } from "remix-utils/sse/server";
+// import { eventStream } from "remix-utils/sse/server";
 
 import { myEventEmitter, PlayerRecord, RoomRecord } from "~/data";
 
+const { eventStream } = require("remix-utils/sse/server")
+
 export function loader({ request }: LoaderFunctionArgs) {
-  return eventStream(request.signal, function setup(send) {
+  return eventStream(request.signal, function setup(send: (arg0: { event: string; data: string; }) => void) {
     function playerAddedToRoomHandler(
       updatedRoomId: string,
       newPlayer: PlayerRecord,

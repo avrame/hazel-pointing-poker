@@ -1,3 +1,5 @@
+/* eslint-disable import/order */
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
@@ -9,7 +11,8 @@ import {
 } from "@remix-run/react";
 import confetti from "canvas-confetti";
 import { useState, useEffect, useRef } from "react";
-import { useEventSource } from "remix-utils/sse/react";
+
+// import { useEventSource } from "remix-utils/sse/react";
 import invariant from "tiny-invariant";
 
 import Button from "~/components/Button/";
@@ -25,6 +28,8 @@ import {
   revealCards,
   resetRoom,
 } from "~/data";
+
+const { useEventSource } = require("remix-utils/sse/react")
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   invariant(params.roomId, "roomId not found");
