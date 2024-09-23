@@ -58,6 +58,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (playerId) {
     const player = getPlayer(playerId)
     cookie.currentPlayer = player
+    cookie.room = room
     return json(
       { room, errors: { roomName: null, playerName: null } },
       {

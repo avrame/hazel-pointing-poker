@@ -1,43 +1,53 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 // app/routes/sse.room.ts
 import { LoaderFunctionArgs } from "@remix-run/node";
-// import { eventStream } from "remix-utils/sse/server";
 
+import { session } from "~/cookies/session-cookie";
 import { myEventEmitter, PlayerRecord, RoomRecord } from "~/data";
 
 const { eventStream } = require("remix-utils/sse/server")
 
-export function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
+  const cookieHeader = request.headers.get("Cookie")
+  const cookie = (await session.parse(cookieHeader)) || {}
   return eventStream(request.signal, function setup(send: (arg0: { event: string; data: string; }) => void) {
     function playerAddedToRoomHandler(
       updatedRoomId: string,
       newPlayer: PlayerRecord,
     ) {
-      send({ event: "revealCards", data: "false" });
-      send({
-        event: "playerAddedToRoom",
-        data: JSON.stringify({ updatedRoomId, newPlayer }),
-      });
+      if (cookie.room.id === updatedRoomId) {
+        send({ event: "revealCards", data: "false" });
+        send({
+          event: "playerAddedToRoom",
+          data: JSON.stringify({ updatedRoomId, newPlayer }),
+        });
+      }
     }
 
-    function playerChosePointsHandler(playerId: string, points: number) {
-      send({ event: "revealCards", data: "false" });
-      send({
-        event: "playerChosePoints",
-        data: JSON.stringify({ playerId, points }),
-      });
+    function playerChosePointsHandler(roomId: string, playerId: string, points: number) {
+      if (cookie.room.id === roomId) {
+        send({ event: "revealCards", data: "false" });
+        send({
+          event: "playerChosePoints",
+          data: JSON.stringify({ playerId, points }),
+        });
+      }
     }
 
-    function revealCardsHandler() {
-      send({ event: "revealCards", data: "true" });
+    function revealCardsHandler(roomId: string) {
+      if (cookie.room.id === roomId) {
+        send({ event: "revealCards", data: "true" });
+      }
     }
 
     function roomResetHandler(updatedRoom: RoomRecord, updatedPlayers: PlayerRecord[], resetCount: number) {
-      send({ event: "revealCards", data: "false" });
-      send({
-        event: "roomReset",
-        data: JSON.stringify({ updatedRoom, updatedPlayers, resetCount }),
-      });
+      if (cookie.room.id === updatedRoom.id) {
+        send({ event: "revealCards", data: "false" });
+        send({
+          event: "roomReset",
+          data: JSON.stringify({ updatedRoom, updatedPlayers, resetCount }),
+        });
+      }
     }
 
     myEventEmitter.on("playerAddedToRoom", playerAddedToRoomHandler);

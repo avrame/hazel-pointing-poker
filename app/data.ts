@@ -11,6 +11,7 @@ interface RoomMutation {
 
 interface PlayerMutation {
   id?: string
+  roomId?: string
   name?: string
   role?: 'creator' | 'player' | 'spectator'
   points?: number | "?"
@@ -69,7 +70,9 @@ const data = {
 
 export function createRoom(name: string, creatorName: string) {
   const newPlayer = data.createPlayer({ name: creatorName, role: 'creator' })
-  return data.createRoom({ name, players: [newPlayer.id] })
+  const updatedRoom = data.createRoom({ name, players: [newPlayer.id] })
+  data.updatePlayer(newPlayer.id, { roomId: updatedRoom.id })
+  return updatedRoom
 }
 
 export function getRoom(id: string) {
@@ -82,7 +85,7 @@ export function getPlayer(id: string) {
 
 export function addPlayerToRoom(roomId: string, playerName: string) {
   const room = data.getRoom(roomId)
-  const newPlayer = data.createPlayer({ name: playerName, role: 'player' })
+  const newPlayer = data.createPlayer({ name: playerName, roomId, role: 'player' })
   const updatedRoom = data.updateRoom(roomId, { players: [...(room?.players ?? []), newPlayer.id] })
   myEventEmitter.emit('playerAddedToRoom', updatedRoom.id, newPlayer)
   return {updatedRoom, newPlayer}
@@ -91,7 +94,7 @@ export function addPlayerToRoom(roomId: string, playerName: string) {
 export function setPlayerPoints(playerId: string, points: number | "?") {
   if (data.players[playerId]) {
     data.players[playerId].points = points
-    myEventEmitter.emit('playerChosePoints', playerId, points)
+    myEventEmitter.emit('playerChosePoints', data.players[playerId].roomId, playerId, points)
   }
 }
 
@@ -104,7 +107,7 @@ export function getRoomPlayers(roomId: string) {
 
 export function revealCards(roomId: string) {
   data.updateRoom(roomId, { revealed: true })
-  myEventEmitter.emit('revealCards')
+  myEventEmitter.emit('revealCards', roomId)
 }
 
 let resetCount = 0
