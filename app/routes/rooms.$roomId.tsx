@@ -167,7 +167,7 @@ export default function RoomPage() {
       if (totalPoints && playersWithPoints) {
         setAverage(totalPoints / playersWithPoints.length);
       }
-      const consensus = players?.every((p) => p.points === players[0].points);
+      const consensus = players && players.length > 1 && players?.every((p) => p.points === players[0].points);
       if (consensus) {
         confetti({
           particleCount: 100,
