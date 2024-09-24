@@ -216,12 +216,11 @@ export default function RoomPage() {
                     <h3 className="text-lg">{player.name}</h3>
                   </td>
                   <td className="h-24 p-3">
-                    {player.points ? (
-                      <Card
-                        points={player.points}
-                        flip={revealCards === "true" || !!room.revealed}
-                      />
-                    ) : null}
+                    <Card
+                      points={player.points}
+                      visible={!!player.points}
+                      flip={revealCards === "true" || !!room.revealed}
+                    />
                   </td>
                 </tr>
               );
