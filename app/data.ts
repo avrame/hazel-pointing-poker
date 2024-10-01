@@ -65,6 +65,12 @@ const data = {
 
   getPlayer(id: string): PlayerRecord {
     return data.players[id] || null
+  },
+
+  deletePlayer(playerId: string, roomId: string) {
+    delete data.players[playerId]
+    const newPlayers = data.rooms[roomId]?.players?.filter(id => id !== playerId)
+    data.rooms[roomId].players = newPlayers
   }
 }
 
@@ -125,4 +131,9 @@ export function resetRoom(roomId: string) {
 
 export function deleteRoom(id: string) {
   data.deleteRoom(id)
+}
+
+export function deletePlayer(playerId: string, roomId: string) {
+  data.deletePlayer(playerId, roomId)
+  myEventEmitter.emit('playerLeft', playerId, roomId)
 }

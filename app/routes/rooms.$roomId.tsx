@@ -6,11 +6,13 @@ import { json, redirect } from "@remix-run/node";
 import {
   Form,
   isRouteErrorResponse,
+  useBeforeUnload,
+  useFetcher,
   useLoaderData,
   useRouteError,
 } from "@remix-run/react";
 import confetti from "canvas-confetti";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 // import { useEventSource } from "remix-utils/sse/react";
 import invariant from "tiny-invariant";
@@ -89,6 +91,7 @@ let applauseAudio: HTMLAudioElement;
 
 export default function RoomPage() {
   const data = useLoaderData<typeof loader>();
+  const fetcher = useFetcher()
   const [room, setRoom] = useState(data.room);
   const [players, setPlayers] = useState(data.players);
   const [average, setAverage] = useState<number>();
@@ -105,12 +108,25 @@ export default function RoomPage() {
   const roomResetJSON = useEventSource("/sse/room", {
     event: "roomReset",
   });
+  const playerLeftJSON = useEventSource("/sse/room", {
+    event: "playerLeft",
+  })
   const lastPlayerAddedJSON = useRef<string | undefined>()
   const lastChosePointsJSON = useRef<string | undefined>()
 
   const currentPlayer = data.players?.find(
     (p) => p.id === data.currentPlayer.id,
   );
+
+  useBeforeUnload(
+    useCallback(() => {
+      if (currentPlayer)
+        fetcher.submit(
+          {},
+          { method: "DELETE", action: "/deletePlayer", encType: "application/json" },
+        )
+    }, [fetcher, currentPlayer]),
+  )
 
   useEffect(() => {
     applauseAudio = new Audio("/audio/applause.mp3");
@@ -193,6 +209,14 @@ export default function RoomPage() {
     setPlayers(updatedPlayers);
     setAverage(undefined)
   }, [roomResetJSON]);
+
+  useEffect(() => {
+    if (!playerLeftJSON) return
+    const { playerId, roomId } = JSON.parse(playerLeftJSON)
+    if (roomId === data.room.id) {
+      setPlayers(oldPlayers => oldPlayers ? oldPlayers?.filter(p => p.id !== playerId) : null)
+    }
+  }, [data.room.id, playerLeftJSON])
 
   return (
     <div className="flex flex-col items-center gap-4">
