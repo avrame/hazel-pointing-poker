@@ -172,8 +172,8 @@ export default function RoomPage() {
   useEffect(() => {
     if (revealCards === "true") {
       const playersWithPoints = players?.filter(
-        (p) => p.role !== "spectator" && !Number.isNaN(p.points),
-      );
+        (p) => p.role !== "spectator" && p.points && !Number.isNaN(p.points),
+      )
       const totalPoints = playersWithPoints?.reduce((sum, p) => {
         if (p.points && p.points !== "?") {
           return sum + p.points;

@@ -16,7 +16,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
       newPlayer: PlayerRecord,
     ) {
       if (cookie.room.id === updatedRoomId) {
-        send({ event: "revealCards", data: "false" })
         send({
           event: "playerAddedToRoom",
           data: JSON.stringify({ updatedRoomId, newPlayer }),
@@ -26,7 +25,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     function playerChosePointsHandler(roomId: string, playerId: string, points: number, pointsCount: number) {
       if (cookie.room.id === roomId) {
-        send({ event: "revealCards", data: "false" })
         send({
           event: "playerChosePoints",
           data: JSON.stringify({ playerId, points, pointsCount }),
