@@ -31,7 +31,7 @@ import {
   resetRoom,
 } from "~/data";
 
-const { useEventSource } = require("remix-utils/sse/react")
+const { useEventSource } = require("remix-utils/sse/react");
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   invariant(params.roomId, "roomId not found");
@@ -88,10 +88,11 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
 };
 
 let applauseAudio: HTMLAudioElement;
+const possibleCardValues = [1, 2, 3, 5, 8, 13, 21, "?"];
 
 export default function RoomPage() {
   const data = useLoaderData<typeof loader>();
-  const fetcher = useFetcher()
+  const fetcher = useFetcher();
   const [room, setRoom] = useState(data.room);
   const [players, setPlayers] = useState(data.players);
   const [average, setAverage] = useState<number>();
@@ -110,9 +111,9 @@ export default function RoomPage() {
   });
   const playerLeftJSON = useEventSource("/sse/room", {
     event: "playerLeft",
-  })
-  const lastPlayerAddedJSON = useRef<string | undefined>()
-  const lastChosePointsJSON = useRef<string | undefined>()
+  });
+  const lastPlayerAddedJSON = useRef<string | undefined>();
+  const lastChosePointsJSON = useRef<string | undefined>();
 
   const currentPlayer = data.players?.find(
     (p) => p.id === data.currentPlayer.id,
@@ -123,10 +124,14 @@ export default function RoomPage() {
       if (currentPlayer)
         fetcher.submit(
           {},
-          { method: "DELETE", action: "/deletePlayer", encType: "application/json" },
-        )
+          {
+            method: "DELETE",
+            action: "/deletePlayer",
+            encType: "application/json",
+          },
+        );
     }, [fetcher, currentPlayer]),
-  )
+  );
 
   useEffect(() => {
     applauseAudio = new Audio("/audio/applause.mp3");
@@ -138,8 +143,9 @@ export default function RoomPage() {
   }, [setJoinUrl, room.id]);
 
   useEffect(() => {
-    if (!playerAddedJSON || playerAddedJSON === lastPlayerAddedJSON.current) return;
-    lastPlayerAddedJSON.current = playerAddedJSON
+    if (!playerAddedJSON || playerAddedJSON === lastPlayerAddedJSON.current)
+      return;
+    lastPlayerAddedJSON.current = playerAddedJSON;
     const { updatedRoomId, newPlayer } = JSON.parse(playerAddedJSON);
     if (room.id === updatedRoomId) {
       setPlayers((oldPlayers) => [...(oldPlayers ?? []), newPlayer]);
@@ -153,8 +159,9 @@ export default function RoomPage() {
   }, [playerAddedJSON, room.id]);
 
   useEffect(() => {
-    if (!chosePointsJSON || chosePointsJSON === lastChosePointsJSON.current) return;
-    lastChosePointsJSON.current = chosePointsJSON
+    if (!chosePointsJSON || chosePointsJSON === lastChosePointsJSON.current)
+      return;
+    lastChosePointsJSON.current = chosePointsJSON;
     const { playerId, points } = JSON.parse(chosePointsJSON);
     if (room.players?.includes(playerId)) {
       setPlayers(
@@ -173,7 +180,7 @@ export default function RoomPage() {
     if (revealCards === "true") {
       const playersWithPoints = players?.filter(
         (p) => p.role !== "spectator" && p.points && !Number.isNaN(p.points),
-      )
+      );
       const totalPoints = playersWithPoints?.reduce((sum, p) => {
         if (p.points && p.points !== "?") {
           return sum + p.points;
@@ -183,7 +190,10 @@ export default function RoomPage() {
       if (totalPoints && playersWithPoints) {
         setAverage(totalPoints / playersWithPoints.length);
       }
-      const consensus = players && players.length > 1 && players?.every((p) => p.points === players[0].points);
+      const consensus =
+        players &&
+        players.length > 1 &&
+        players?.every((p) => p.points === players[0].points);
       if (consensus) {
         confetti({
           particleCount: 100,
@@ -207,16 +217,18 @@ export default function RoomPage() {
     const { updatedRoom, updatedPlayers } = JSON.parse(roomResetJSON);
     setRoom(updatedRoom);
     setPlayers(updatedPlayers);
-    setAverage(undefined)
+    setAverage(undefined);
   }, [roomResetJSON]);
 
   useEffect(() => {
-    if (!playerLeftJSON) return
-    const { playerId, roomId } = JSON.parse(playerLeftJSON)
+    if (!playerLeftJSON) return;
+    const { playerId, roomId } = JSON.parse(playerLeftJSON);
     if (roomId === data.room.id) {
-      setPlayers(oldPlayers => oldPlayers ? oldPlayers?.filter(p => p.id !== playerId) : null)
+      setPlayers((oldPlayers) =>
+        oldPlayers ? oldPlayers?.filter((p) => p.id !== playerId) : null,
+      );
     }
-  }, [data.room.id, playerLeftJSON])
+  }, [data.room.id, playerLeftJSON]);
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -263,27 +275,17 @@ export default function RoomPage() {
       <Form method="patch">
         <input type="hidden" name="playerId" value={data.currentPlayer.id} />
         <div className="flex flex-row gap-2">
-          <Button type="submit" name="points" value={1}>
-            1
-          </Button>
-          <Button type="submit" name="points" value={2}>
-            2
-          </Button>
-          <Button type="submit" name="points" value={3}>
-            3
-          </Button>
-          <Button type="submit" name="points" value={5}>
-            5
-          </Button>
-          <Button type="submit" name="points" value={8}>
-            8
-          </Button>
-          <Button type="submit" name="points" value={13}>
-            13
-          </Button>
-          <Button type="submit" name="points" value="?">
-            ?
-          </Button>
+          {possibleCardValues.map((val) => (
+            <Button
+              key={val}
+              selected={currentPlayer?.points === val}
+              type="submit"
+              name="points"
+              value={val}
+            >
+              {val}
+            </Button>
+          ))}
         </div>
       </Form>
 
