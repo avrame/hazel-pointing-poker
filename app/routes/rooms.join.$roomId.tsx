@@ -4,6 +4,7 @@ import { json, redirect } from "@remix-run/node";
 import {
   Form,
   isRouteErrorResponse,
+  useActionData,
   useLoaderData,
   useRouteError,
 } from "@remix-run/react";
@@ -37,6 +38,15 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const playerName = formData.get("playerName") as string;
 
+  if (typeof playerName !== "string" || playerName.length === 0) {
+    return json(
+      {
+        errors: { roomName: null, playerName: "Player name is required" },
+      },
+      { status: 400 },
+    );
+  }
+
   const { newPlayer, updatedRoom } = addPlayerToRoom(roomId, playerName);
   cookie.currentPlayer = newPlayer;
   cookie.room = updatedRoom;
@@ -49,7 +59,8 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
 };
 
 export default function RoomJoinPage() {
-  const data = useLoaderData<typeof loader>();
+  const data = useLoaderData<typeof loader>()
+  const actionData = useActionData<typeof action>()
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -57,13 +68,26 @@ export default function RoomJoinPage() {
       <Hr />
       <div>
         <Form method="post">
-          <div className="flex flex-col items-start gap-2">
-            <label className="flex w-full flex-col gap-1">
-              <span>Your Name:</span>
-              <Input name="playerName" defaultValue={data.currentPlayer?.name} />
+          <div>
+            <label>
+              <span className="mr-1">Your Name:</span>
+              <Input
+                name="playerName"
+                className="mr-1"
+                defaultValue={data.currentPlayer?.name}
+                aria-invalid={actionData?.errors?.playerName ? true : undefined}
+                aria-errormessage={
+                  actionData?.errors?.playerName ? "title-error" : undefined
+                }
+              />
             </label>
             <Button type="submit">Join Room</Button>
           </div>
+          {actionData?.errors?.playerName ? (
+            <div className="pt-1 text-red-700" id="title-error">
+              {actionData.errors.playerName}
+            </div>
+          ) : null}
         </Form>
       </div>
     </div>
