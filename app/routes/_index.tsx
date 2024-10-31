@@ -14,6 +14,7 @@ import {
 import { useEffect, useRef } from "react"
 
 import Button from "~/components/Button/"
+import Checkbox from "~/components/Checkbox";
 import Input from "~/components/Input/"
 import { session } from "~/cookies/session-cookie"
 import { createRoom, getPlayer } from "~/data"
@@ -32,6 +33,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData()
   const roomName = formData.get("roomName")
   const playerName = formData.get("playerName")
+  const spectator = formData.get("spectator") === "on"
   const cookieHeader = request.headers.get("Cookie")
   const cookie = (await session.parse(cookieHeader)) || {}
 
@@ -53,7 +55,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     );
   }
 
-  const room = createRoom(roomName, playerName);
+  const room = createRoom(roomName, playerName, spectator);
   const playerId = room.players?.[0]
   if (playerId) {
     const player = getPlayer(playerId)
@@ -132,6 +134,13 @@ export default function Index() {
                 {actionData.errors.playerName}
               </div>
             ) : null}
+          </div>
+
+          <div>
+            <label className="flex w-full flex-col gap-1">
+              <span>Join as a spectator</span>
+              <Checkbox name="spectator" />
+            </label>
           </div>
 
           <div className="text-right">

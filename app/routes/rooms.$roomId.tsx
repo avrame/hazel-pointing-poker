@@ -1,4 +1,3 @@
-/* eslint-disable import/order */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
@@ -13,8 +12,6 @@ import {
 } from "@remix-run/react";
 import confetti from "canvas-confetti";
 import { useState, useEffect, useRef, useCallback } from "react";
-
-// import { useEventSource } from "remix-utils/sse/react";
 import invariant from "tiny-invariant";
 
 import Button from "~/components/Button/";
@@ -179,7 +176,7 @@ export default function RoomPage() {
   useEffect(() => {
     if (revealCards === "true") {
       const playersWithPoints = players?.filter(
-        (p) => p.role !== "spectator" && p.points && !Number.isNaN(p.points),
+        (p) => !p.spectator && p.points && !Number.isNaN(p.points),
       );
       const totalPoints = playersWithPoints?.reduce((sum, p) => {
         if (p.points && p.points !== "?") {
@@ -188,12 +185,14 @@ export default function RoomPage() {
         return sum;
       }, 0);
       if (totalPoints && playersWithPoints) {
-        setAverage(Math.round(100 * (totalPoints / playersWithPoints.length)) / 100);
+        setAverage(
+          Math.round(100 * (totalPoints / playersWithPoints.length)) / 100,
+        );
       }
       const consensus =
-        players &&
-        players.length > 1 &&
-        players?.every((p) => p.points === players[0].points);
+        playersWithPoints &&
+        playersWithPoints.length > 1 &&
+        playersWithPoints?.every((p) => p.points === playersWithPoints[0].points);
       if (consensus) {
         confetti({
           particleCount: 100,
@@ -230,37 +229,47 @@ export default function RoomPage() {
     }
   }, [data.room.id, playerLeftJSON]);
 
+  const actualPlayers = players?.filter((p) => !p.spectator);
+  const spectators = players?.filter((p) => p.spectator);
+
   return (
-    <div className="flex flex-col items-center gap-4">
-      <h2 className="text-3xl font-bold">{room.name} Room</h2>
+    <div className="flex flex-col gap-4">
+      <h2 className="text-3xl font-bold text-center">{room.name} Room</h2>
 
       <Hr />
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-2 items-center">
+        <h3 className="mb-2 text-2xl font-bold">Players</h3>
         <table>
           <thead>
-            <tr className="border-b border-slate-600">
-              <th className="border-r border-slate-600 p-3">Player</th>
-              <th className="p-3">Points</th>
+            <tr className="border-b border-slate-300">
+              {actualPlayers?.map((player) => (
+                <th
+                  key={player.id}
+                  className="border-r border-slate-300 p-3 last:border-r-0"
+                >
+                  {player.name}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {players?.map((player) => {
-              return (
-                <tr key={player.id} className="border-b border-slate-600">
-                  <td className="h-24 border-r border-slate-600 p-3 text-right">
-                    <h3 className="text-lg">{player.name}</h3>
-                  </td>
-                  <td className="h-24 p-3">
+            <tr className="border-b border-slate-300">
+              {actualPlayers?.map((player) => {
+                return (
+                  <td
+                    key={player.id}
+                    className="h-24 border-r border-slate-300 p-3 last:border-r-0"
+                  >
                     <Card
                       points={player.points}
                       visible={!!player.points}
                       flip={revealCards === "true" || !!room.revealed}
                     />
                   </td>
-                </tr>
-              );
-            })}
+                );
+              })}
+            </tr>
           </tbody>
         </table>
 
@@ -272,24 +281,37 @@ export default function RoomPage() {
 
       <Hr />
 
-      <Form method="patch">
-        <input type="hidden" name="playerId" value={data.currentPlayer.id} />
-        <div className="flex flex-row gap-2">
-          {possibleCardValues.map((val) => (
-            <Button
-              key={val}
-              selected={currentPlayer?.points === val}
-              type="submit"
-              name="points"
-              value={val}
-            >
-              {val}
-            </Button>
-          ))}
+      {spectators?.length ? (
+        <div className="flex flex-col gap-2 items-center">
+          <h3 className="mb-2 text-2xl font-bold">Spectators</h3>
+          {spectators?.map((player) => {
+            return <div key={player.id}>{player.name}</div>;
+          })}
         </div>
-      </Form>
+      ) : null}
 
-      <div className="flex gap-2">
+      <Hr />
+
+      {currentPlayer?.spectator ? null : (
+        <Form method="patch">
+          <input type="hidden" name="playerId" value={data.currentPlayer.id} />
+          <div className="flex flex-row gap-2 justify-center">
+            {possibleCardValues.map((val) => (
+              <Button
+                key={val}
+                selected={currentPlayer?.points === val}
+                type="submit"
+                name="points"
+                value={val}
+              >
+                {val}
+              </Button>
+            ))}
+          </div>
+        </Form>
+      )}
+
+      <div className="flex gap-2 justify-center">
         <div>
           <Form method="patch">
             <Button type="submit" name="reveal" value="true">
@@ -309,7 +331,7 @@ export default function RoomPage() {
 
       <Hr />
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 justify-center">
         <label className="flex items-center gap-1">
           <span>Room Link:</span>
           <Input value={joinUrl} className="w-96" readOnly />
@@ -333,9 +355,11 @@ export default function RoomPage() {
 
       {currentPlayer?.role === "creator" ? (
         <Form method="delete">
-          <Button type="submit" theme="danger">
-            Delete Room
-          </Button>
+          <div className="text-center">
+            <Button type="submit" theme="danger">
+              Delete Room
+            </Button>
+          </div>
         </Form>
       ) : null}
     </div>

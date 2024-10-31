@@ -11,6 +11,7 @@ import {
 import invariant from "tiny-invariant";
 
 import Button from "~/components/Button/";
+import Checkbox from "~/components/Checkbox";
 import Hr from "~/components/Hr";
 import Input from "~/components/Input/";
 import { session } from "~/cookies/session-cookie";
@@ -30,13 +31,14 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ params, request }: ActionFunctionArgs) => {
-  const { roomId } = params;
-  invariant(roomId, "roomId not found");
-  const cookieHeader = request.headers.get("Cookie");
-  const cookie = (await session.parse(cookieHeader)) || {};
+  const { roomId } = params
+  invariant(roomId, "roomId not found")
+  const cookieHeader = request.headers.get("Cookie")
+  const cookie = (await session.parse(cookieHeader)) || {}
 
   const formData = await request.formData();
-  const playerName = formData.get("playerName") as string;
+  const playerName = formData.get("playerName") as string
+  const spectator = formData.get("spectator") === "on"
 
   if (typeof playerName !== "string" || playerName.length === 0) {
     return json(
@@ -47,9 +49,9 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     );
   }
 
-  const { newPlayer, updatedRoom } = addPlayerToRoom(roomId, playerName);
-  cookie.currentPlayer = newPlayer;
-  cookie.room = updatedRoom;
+  const { newPlayer, updatedRoom } = addPlayerToRoom(roomId, playerName, spectator)
+  cookie.currentPlayer = newPlayer
+  cookie.room = updatedRoom
 
   return redirect(`/rooms/${roomId}`, {
     headers: {
@@ -88,6 +90,12 @@ export default function RoomJoinPage() {
               {actionData.errors.playerName}
             </div>
           ) : null}
+          <div className="mt-2">
+            <label className="flex w-full items-center gap-2">
+              <span>Join as a spectator</span>
+              <Checkbox name="spectator" />
+            </label>
+          </div>
         </Form>
       </div>
     </div>

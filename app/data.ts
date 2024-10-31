@@ -13,7 +13,8 @@ interface PlayerMutation {
   id?: string
   roomId?: string
   name?: string
-  role?: 'creator' | 'player' | 'spectator'
+  role?: 'creator' | 'player'
+  spectator?: boolean
   points?: number | "?"
 }
 
@@ -74,8 +75,8 @@ const data = {
   }
 }
 
-export function createRoom(name: string, creatorName: string) {
-  const newPlayer = data.createPlayer({ name: creatorName, role: 'creator' })
+export function createRoom(name: string, creatorName: string, spectator: boolean) {
+  const newPlayer = data.createPlayer({ name: creatorName, role: 'creator', spectator })
   const updatedRoom = data.createRoom({ name, players: [newPlayer.id] })
   data.updatePlayer(newPlayer.id, { roomId: updatedRoom.id })
   return updatedRoom
@@ -89,9 +90,9 @@ export function getPlayer(id: string) {
   return data.getPlayer(id)
 }
 
-export function addPlayerToRoom(roomId: string, playerName: string) {
+export function addPlayerToRoom(roomId: string, playerName: string, spectator: boolean) {
   const room = data.getRoom(roomId)
-  const newPlayer = data.createPlayer({ name: playerName, roomId, role: 'player' })
+  const newPlayer = data.createPlayer({ name: playerName, roomId, role: 'player', spectator })
   const updatedRoom = data.updateRoom(roomId, { players: [...(room?.players ?? []), newPlayer.id] })
   myEventEmitter.emit('playerAddedToRoom', updatedRoom.id, newPlayer)
   return {updatedRoom, newPlayer}
