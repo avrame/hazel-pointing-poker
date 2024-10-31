@@ -188,7 +188,7 @@ export default function RoomPage() {
         return sum;
       }, 0);
       if (totalPoints && playersWithPoints) {
-        setAverage(totalPoints / playersWithPoints.length);
+        setAverage(Math.round(100 * (totalPoints / playersWithPoints.length)) / 100);
       }
       const consensus =
         players &&
