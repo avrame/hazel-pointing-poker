@@ -137,7 +137,7 @@ export default function Index() {
           </div>
 
           <div>
-            <label className="flex w-full flex-col gap-1">
+            <label className="flex w-full flex-row gap-2">
               <span>Join as a spectator:</span>
               <Checkbox name="spectator" />
             </label>

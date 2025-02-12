@@ -33,7 +33,7 @@ export default function App() {
       </head>
       <body className="h-full bg-slate-200">
         <header className="container mx-auto mb-5 rounded-b-lg bg-white p-8">
-          <h1 className="text-center drop-shadow-md text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
+          <h1 className="text-center text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
             The Official Hazel Health Pointing Poker App
           </h1>
         </header>

@@ -111,8 +111,9 @@ export default function RoomPage() {
   });
   const lastPlayerAddedJSON = useRef<string | undefined>();
   const lastChosePointsJSON = useRef<string | undefined>();
+  const cardsRevealed = useRef(false);
 
-  const currentPlayer = data.players?.find(
+  const currentPlayer = players?.find(
     (p) => p.id === data.currentPlayer.id,
   );
 
@@ -174,7 +175,8 @@ export default function RoomPage() {
   }, [chosePointsJSON, room.players]);
 
   useEffect(() => {
-    if (revealCards === "true") {
+    if (revealCards === "true" && !cardsRevealed.current) {
+      cardsRevealed.current = true;
       const playersWithPoints = players?.filter(
         (p) => !p.spectator && p.points && !Number.isNaN(p.points),
       );
@@ -213,6 +215,7 @@ export default function RoomPage() {
 
   useEffect(() => {
     if (!roomResetJSON) return;
+    cardsRevealed.current = false;
     const { updatedRoom, updatedPlayers } = JSON.parse(roomResetJSON);
     setRoom(updatedRoom);
     setPlayers(updatedPlayers);
@@ -277,38 +280,44 @@ export default function RoomPage() {
           <b>Average:</b>
           <span>{average}</span>
         </div>
-      </div>
-
-      <Hr />
+      </div>      
 
       {spectators?.length ? (
-        <div className="flex flex-col gap-2 items-center">
-          <h3 className="mb-2 text-2xl font-bold">Spectators</h3>
-          {spectators?.map((player) => {
-            return <div key={player.id}>{player.name}</div>;
-          })}
-        </div>
+        <>
+          <Hr />
+          <div className="flex flex-col gap-2 items-center">
+            <h3 className="mb-2 text-2xl font-bold">Spectators</h3>
+            {spectators?.map((player) => {
+              return <div key={player.id}>{player.name}</div>;
+            })}
+          </div>
+        </>
       ) : null}
 
-      <Hr />
-
       {currentPlayer?.spectator ? null : (
-        <Form method="patch">
-          <input type="hidden" name="playerId" value={data.currentPlayer.id} />
-          <div className="flex flex-row gap-2 justify-center">
-            {possibleCardValues.map((val) => (
-              <Button
-                key={val}
-                selected={currentPlayer?.points === val}
-                type="submit"
-                name="points"
-                value={val}
-              >
-                {val}
-              </Button>
-            ))}
-          </div>
-        </Form>
+        <>
+          <Hr />
+          <Form method="patch">
+            <input
+              type="hidden"
+              name="playerId"
+              value={data.currentPlayer.id}
+            />
+            <div className="flex flex-row gap-2 justify-center">
+              {possibleCardValues.map((val) => (
+                <Button
+                  key={val}
+                  selected={currentPlayer?.points === val}
+                  type="submit"
+                  name="points"
+                  value={val}
+                >
+                  {val}
+                </Button>
+              ))}
+            </div>
+          </Form>
+        </>
       )}
 
       <div className="flex gap-2 justify-center">
@@ -351,16 +360,17 @@ export default function RoomPage() {
         </Button>
       </div>
 
-      <Hr />
-
       {currentPlayer?.role === "creator" ? (
-        <Form method="delete">
-          <div className="text-center">
-            <Button type="submit" theme="danger">
-              Delete Room
-            </Button>
-          </div>
-        </Form>
+        <>
+          <Hr />
+          <Form method="delete">
+            <div className="text-center">
+              <Button type="submit" theme="danger">
+                Delete Room
+              </Button>
+            </div>
+          </Form>
+        </>
       ) : null}
     </div>
   );
