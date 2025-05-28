@@ -311,6 +311,7 @@ export default function RoomPage() {
                   type="submit"
                   name="points"
                   value={val}
+                  disabled={revealCards === "true"}
                 >
                   {val}
                 </Button>
